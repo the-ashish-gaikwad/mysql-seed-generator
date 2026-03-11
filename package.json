@@ -1,0 +1,45 @@
+{
+  "name": "mysql-seed-generator",
+  "version": "1.0.0",
+  "description": "Simple MySQL database seeder with auto-generated fake data using Faker.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "node basic.test.js"
+  },
+  "keywords": [
+    "mysql",
+    "seed",
+    "faker",
+    "database",
+    "fake-data",
+    "test-data",
+    "seeder",
+    "generator",
+    "mysql-seeder",
+    "data-generator"
+  ],
+  "author": "Ashish Gaikwad",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/the-ashish-gaikwad/mysql-seed-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/the-ashish-gaikwad/mysql-seed-generator/issues"
+  },
+  "homepage": "https://github.com/the-ashish-gaikwad/mysql-seed-generator#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.0.0",
+    "mysql2": "^3.0.0"
+  },
+  "devDependencies": {},
+  "files": [
+    "index.js",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ]
+}
