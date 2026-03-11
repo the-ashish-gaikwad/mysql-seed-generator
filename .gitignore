@@ -42,3 +42,7 @@ Thumbs.db
 
 # Test files
 test-output/
+
+# Local docs (not tracked on GitHub)
+PACKAGE_OVERVIEW.md
+PUBLISHING_GUIDE.md
