@@ -1,6 +1,6 @@
 {
   "name": "mysql-seed-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple MySQL database seeder with auto-generated fake data using Faker.js",
   "main": "index.js",
   "scripts": {
