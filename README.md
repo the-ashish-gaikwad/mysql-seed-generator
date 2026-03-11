@@ -22,19 +22,25 @@ npm install mysql-seed-generator
 ```javascript
 const seedDatabase = require('mysql-seed-generator');
 
-await seedDatabase({
-  user: 'root',              // MySQL username
-  password: 'yourpassword',  // MySQL password
-  database: 'myapp',
-  table: 'users',
-  numRecords: 100,
-  fields: {
-    name: 'VARCHAR(255)',
-    email: 'VARCHAR(255) UNIQUE',
-    age: 'INT',
-    city: 'VARCHAR(100)'
-  }
-});
+async function seedUsers() {
+  await seedDatabase({
+    user: 'root',              // MySQL username
+    password: 'yourpassword',  // MySQL password
+    database: 'myapp',
+    table: 'users',
+    numRecords: 100,
+    fields: {
+      name: 'VARCHAR(255)',
+      email: 'VARCHAR(255) UNIQUE',
+      age: 'INT',
+      city: 'VARCHAR(100)'
+    }
+  });
+}
+
+seedUsers()
+  .then(() => console.log('Done!'))
+  .catch(err => console.error('Error:', err));
 ```
 
 That's it! The function will:
@@ -127,87 +133,100 @@ Just use these field names and fake data is generated automatically!
 ### Basic Users
 
 ```javascript
-await seedDatabase({
-  user: 'root',
-  password: 'password',
-  database: 'myapp',
-  table: 'users',
-  numRecords: 50,
-  fields: {
-    name: 'VARCHAR(255)',
-    email: 'VARCHAR(255) UNIQUE',
-    age: 'INT',
-    city: 'VARCHAR(100)',
-    phone: 'VARCHAR(20)'
-  }
-});
+async function seedUsers() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'myapp',
+    table: 'users',
+    numRecords: 50,
+    fields: {
+      name: 'VARCHAR(255)',
+      email: 'VARCHAR(255) UNIQUE',
+      age: 'INT',
+      city: 'VARCHAR(100)',
+      phone: 'VARCHAR(20)'
+    }
+  });
+}
+
+seedUsers()
+  .then(() => console.log('Done!'))
+  .catch(err => console.error('Error:', err));
 ```
 
 ### E-commerce Products
 
 ```javascript
-await seedDatabase({
-  user: 'root',
-  password: 'password',
-  database: 'shop',
-  table: 'products',
-  numRecords: 200,
-  fields: {
-    product_name: 'VARCHAR(255)',
-    price: 'DECIMAL(10,2)',
-    category: 'VARCHAR(100)',
-    product_image: 'VARCHAR(500)',
-    description: 'TEXT',
-    quantity: 'INT',
-    rating: 'DECIMAL(2,1)'
-  }
-});
+async function seedUsers() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'shop',
+    table: 'products',
+    numRecords: 200,
+    fields: {
+      product_name: 'VARCHAR(255)',
+      price: 'DECIMAL(10,2)',
+      category: 'VARCHAR(100)',
+      product_image: 'VARCHAR(500)',
+      description: 'TEXT',
+      quantity: 'INT',
+      rating: 'DECIMAL(2,1)'
+    }
+  });
+}
 ```
 
 ### Employee Records
 
 ```javascript
-await seedDatabase({
-  user: 'root',
-  password: 'password',
-  database: 'company',
-  table: 'employees',
-  numRecords: 100,
-  fields: {
-    full_name: 'VARCHAR(255)',
-    email: 'VARCHAR(255) UNIQUE',
-    job_title: 'VARCHAR(100)',
-    department: 'VARCHAR(100)',
-    salary: 'INT',
-    phone: 'VARCHAR(20)',
-    created_at: 'DATETIME',
-    is_active: 'BOOLEAN'
-  }
-});
+async function seedUsers() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'company',
+    table: 'employees',
+    numRecords: 100,
+    fields: {
+      full_name: 'VARCHAR(255)',
+      email: 'VARCHAR(255) UNIQUE',
+      job_title: 'VARCHAR(100)',
+      department: 'VARCHAR(100)',
+      salary: 'INT',
+      phone: 'VARCHAR(20)',
+      created_at: 'DATETIME',
+      is_active: 'BOOLEAN'
+    }
+  });
+}
 ```
 
 ### Blog Posts with Images
 
 ```javascript
-await seedDatabase({
-  user: 'root',
-  password: 'password',
-  database: 'blog',
-  table: 'posts',
-  numRecords: 30,
-  fields: {
-    title: 'VARCHAR(255)',
-    description: 'TEXT',
-    cover_image: 'VARCHAR(500)',
-    created_at: 'DATETIME',
-    status: 'VARCHAR(20)'
-  }
+async function seedUsers() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'blog',
+    table: 'posts',
+    numRecords: 30,
+    fields: {
+      title: 'VARCHAR(255)',
+      description: 'TEXT',
+      cover_image: 'VARCHAR(500)',
+      created_at: 'DATETIME',
+      status: 'VARCHAR(20)'
+    }
 });
+}
 ```
 
 ### Users with Avatars
 
 ```javascript
+async function seedUsers() {
 await seedDatabase({
   user: 'root',
   password: 'password',
@@ -223,6 +242,7 @@ await seedDatabase({
     created_at: 'DATETIME'
   }
 });
+}
 ```
 
 ## Common SQL Data Types
@@ -242,6 +262,7 @@ await seedDatabase({
 ### Drop and Recreate Table
 
 ```javascript
+async function seedUsers() {
 await seedDatabase({
   user: 'root',
   password: 'password',
@@ -254,11 +275,13 @@ await seedDatabase({
     email: 'VARCHAR(255) UNIQUE'
   }
 });
+}
 ```
 
 ### Truncate Before Insert
 
 ```javascript
+async function seedUsers() {
 await seedDatabase({
   user: 'root',
   password: 'password',
@@ -271,11 +294,13 @@ await seedDatabase({
     email: 'VARCHAR(255) UNIQUE'
   }
 });
+}
 ```
 
 ### Custom Host and Port
 
 ```javascript
+async function seedUsers() {
 await seedDatabase({
   host: '192.168.1.100',
   port: 3307,
@@ -289,30 +314,8 @@ await seedDatabase({
     email: 'VARCHAR(255) UNIQUE'
   }
 });
-```
-
-### With Error Handling
-
-```javascript
-try {
-  const result = await seedDatabase({
-    user: 'root',
-    password: 'password',
-    database: 'myapp',
-    table: 'users',
-    numRecords: 100,
-    fields: {
-      name: 'VARCHAR(255)',
-      email: 'VARCHAR(255) UNIQUE'
-    }
-  });
-  
-  console.log(`Success! Inserted ${result.insertedRecords} records`);
-} catch (error) {
-  console.error('Seeding failed:', error.message);
 }
 ```
-
 ## Requirements
 
 - Node.js >= 14.0.0
