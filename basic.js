@@ -1,10 +1,11 @@
 const seedDatabase = require('./index');
+const MYSQL_PASSWORD = process.env.MYSQL_PASSWORD || 'yourpassword';
 
 // Example 1: Basic Users Table
 async function seedUsers() {
   await seedDatabase({
     user: 'root',
-    password: 'shashivar@1234',  // ← Change this
+    password: MYSQL_PASSWORD,
     database: 'package',
     table: 'users',
     numRecords: 50,
@@ -22,7 +23,7 @@ async function seedUsers() {
 async function seedProducts() {
   await seedDatabase({
     user: 'root',
-    password: 'yourpassword',  // ← Change this
+    password: MYSQL_PASSWORD,
     database: 'shop',
     table: 'products',
     numRecords: 100,
@@ -41,7 +42,7 @@ async function seedProducts() {
 async function seedEmployees() {
   await seedDatabase({
     user: 'root',
-    password: 'yourpassword',  // ← Change this
+    password: MYSQL_PASSWORD,
     database: 'company',
     table: 'employees',
     numRecords: 200,
