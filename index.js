@@ -89,7 +89,8 @@ async function seedDatabase({
       // Contact
       email: () => faker.internet.email(),
       username: () => faker.internet.userName(),
-      phone: () => faker.phone.number(),
+      // Keep phone values within VARCHAR(20) by generating E.164-like numbers.
+      phone: () => `+${faker.string.numeric({ length: { min: 10, max: 14 } })}`,
       
       // Numbers
       age: () => faker.number.int({ min: 18, max: 65 }),
