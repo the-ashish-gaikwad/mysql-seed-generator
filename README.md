@@ -71,7 +71,7 @@ Just use these field names and fake data is generated automatically!
 ### 📧 Contact
 - `email` → "john@example.com"
 - `username` → "john_doe123"
-- `phone` → "(555) 123-4567"
+- `phone` → "+14155552671" (E.164-like, fits `VARCHAR(20)`)
 
 ### 🔢 Numbers
 - `age` → 25
