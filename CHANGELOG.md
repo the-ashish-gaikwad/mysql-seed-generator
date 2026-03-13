@@ -7,7 +7,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-## [2.0.1] - 2026-03-13
+## [2.0.3] - 2026-03-13
 
 ### Added
 - Custom column names are now supported.
@@ -19,10 +19,19 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ### Fixed
 - `AUTO_INCREMENT` columns (for example `id INT AUTO_INCREMENT PRIMARY KEY`) are now treated as database-managed and are excluded from generated insert payloads.
 - Added clearer guidance for `ER_NO_DEFAULT_FOR_FIELD` when an existing table schema requires columns missing from current `fields` input.
-- Added identifier validation for database, table, and field names to avoid unsafe SQL construction.
+git add CHANGELOG.md
+git commit -m "docs(changelog): align release notes for 2.0.3 and 2.0.2"
+git push origin main --follow-tagsgit add CHANGELOG.md
+git commit -m "docs(changelog): align release notes for 2.0.3 and 2.0.2"
+git push origin main --follow-tags- Added identifier validation for database, table, and field names to avoid unsafe SQL construction.
 - Added SQL type safety checks to block obvious multi-statement/comment payloads.
 - Insert operations are now batched (`batchSize`) to reduce large-query failures.
 - Fixed test workflow: `npm test` now runs `test/basic.test.js` and the test file imports package code correctly.
+
+## [2.0.2] - 2026-03-13
+
+### Changed
+- Version bump only (published by mistake). No functional changes compared with `2.0.1`.
 
 ## [2.0.0] - 2026-03-13
 
@@ -65,7 +74,9 @@ fields: {
 ### Notes
 - In `1.0.0`, table creation included an implicit `id INT AUTO_INCREMENT PRIMARY KEY` column.
 
-[Unreleased]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.3...HEAD
+[2.0.3]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.2...v2.0.3
+[2.0.2]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/4ca1991...v1.0.1
