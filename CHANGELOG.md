@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-03-13
+
 ### Added
 - Custom column names are now supported.
 - Data generation now falls back to SQL-type inference when a predefined field name is not used.
@@ -59,7 +61,8 @@ fields: {
 ### Notes
 - In `1.0.0`, table creation included an implicit `id INT AUTO_INCREMENT PRIMARY KEY` column.
 
-[Unreleased]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/4ca1991...v1.0.1
 [1.0.0]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/commit/4ca1991
