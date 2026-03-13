@@ -384,6 +384,17 @@ Development strategy is intentionally phased so each database package can mature
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## Acknowledgments
+
+This project is built with help from excellent open source maintainers. Thank you for your work and generosity.
+
+- [@faker-js/faker](https://github.com/faker-js/faker): fake data generation used throughout this package.
+- [mysql2](https://github.com/sidorares/node-mysql2): reliable MySQL client used for database connectivity.
+
+Their projects make this package possible and much better for everyone.
+
+For license details, see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## License
 
 MIT
