@@ -164,7 +164,6 @@ async function seedDatabase({
     
     await connection.query(`
       CREATE TABLE IF NOT EXISTS ${table} (
-        id INT AUTO_INCREMENT PRIMARY KEY,
         ${columns}
       )
     `);
