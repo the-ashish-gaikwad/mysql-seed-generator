@@ -61,10 +61,10 @@ That's it! The function will:
 | `port` | number | `3306` | MySQL port |
 | `database` | string | **required** | Database name |
 | `table` | string | **required** | Table name |
-| `fields` | object | **required** | Field definitions. Supports `'SQL_TYPE'` or `{ type, generator }` per field |
+| `fields` | object | **required** | Field definitions as SQL types (`fieldName: 'SQL_TYPE'`) |
 | `map` | object | `{}` | Recommended simple mapping for custom column names (`fieldName: 'name'` or `fieldName: () => value`) |
-| `fieldGenerators` | object | `{}` | Optional legacy per-field generator overrides (`fieldName: 'name'` or `fieldName: () => value`) |
-| `generators` | object | `{}` | Alias for `fieldGenerators` |
+| `fieldGenerators` | object | `{}` | Legacy alias for mapping custom columns to generators |
+| `generators` | object | `{}` | Legacy alias for `fieldGenerators` |
 | `numRecords` | number | `10` | Number of records to generate |
 | `dropTableIfExists` | boolean | `false` | Drop table before creating |
 | `truncateBeforeInsert` | boolean | `false` | Truncate table before inserting |
@@ -74,7 +74,7 @@ That's it! The function will:
 Predefined field names generate smart matching data automatically.
 Custom field names are also supported and will use SQL-type inference (or explicit overrides).
 
-### Simplest Custom-Name Format (Recommended)
+### Recommended: Fields + Map
 
 Keep your `fields` simple, and use `map` only for the custom names you want to control:
 
@@ -91,7 +91,7 @@ map: {
 }
 ```
 
-Plain string values are always treated as SQL types, so your datatype and constraints remain fully under your control.
+This is the primary API. Plain string values are always treated as SQL types, so your datatype and constraints remain fully under your control.
 
 ### AUTO_INCREMENT and DB-Managed Columns
 
@@ -106,9 +106,9 @@ fields: {
 }
 ```
 
-### Inline Field Format (Advanced)
+### Advanced / Compatibility: Inline Field Generators
 
-Keep everything in one place by defining type and generator inside each field:
+Inline format is still supported for existing users, but `fields + map` is the recommended approach for new code.
 
 ```javascript
 fields: {
@@ -130,8 +130,8 @@ fields: {
 
 When generating values, this package resolves each field in the following order:
 
-1. `fields[fieldName].generator` inline override (if provided)
-2. `map[fieldName]` (recommended simple override)
+1. `map[fieldName]` (recommended primary override)
+2. `fields[fieldName].generator` inline override (advanced format)
 3. `fieldGenerators[fieldName]` or `generators[fieldName]` (legacy aliases)
 4. Exact predefined field match (for example `email`, `name`)
 5. Alias match inside custom field names (for example `customer_email`)
@@ -421,7 +421,7 @@ async function seedCustomGenerators() {
 }
 ```
 
-Legacy style with `fieldGenerators` and `generators` still works for backward compatibility.
+Legacy aliases (`fieldGenerators` and `generators`) still work for backward compatibility, but `map` is preferred.
 
 ## Common SQL Data Types
 
