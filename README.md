@@ -359,12 +359,26 @@ await seedDatabase({
 
 ## Roadmap
 
-- ✅ v1.0 - MySQL support
-- ✅ v2.0 - Explicit schema mode (no implicit `id` column)
-- 🔜 v2.1 - Custom field generators
-- 🔜 v3.0 - PostgreSQL support
-- 🔜 v3.1 - SQLite support
-- 🔜 v4.0 - MongoDB support
+Development strategy is intentionally phased so each database package can mature independently before combining everything.
+
+### Phase 1: Database-specific packages
+
+- ✅ `mysql-seed-generator` (this package)
+- 🔜 `postgresql-seed-generator`
+- 🔜 `sqlite-seed-generator`
+- 🔜 Additional dedicated generators (for example `mongodb-seed-generator`)
+
+### Phase 2: Stability and feature parity
+
+- Align core features across all generators
+- Improve reliability and database-specific edge case handling
+- Add consistent docs, examples, and test coverage for each package
+
+### Phase 3: One-stop unified solution
+
+- Build a single package that brings all generators together under one API
+- Keep driver-specific behavior where needed while sharing common workflows
+- Ship an integrated seeding toolkit once individual packages are production-ready
 
 ## Contributing
 
