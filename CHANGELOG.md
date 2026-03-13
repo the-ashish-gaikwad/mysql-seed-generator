@@ -19,6 +19,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ### Fixed
 - `AUTO_INCREMENT` columns (for example `id INT AUTO_INCREMENT PRIMARY KEY`) are now treated as database-managed and are excluded from generated insert payloads.
 - Added clearer guidance for `ER_NO_DEFAULT_FOR_FIELD` when an existing table schema requires columns missing from current `fields` input.
+- Added identifier validation for database, table, and field names to avoid unsafe SQL construction.
+- Added SQL type safety checks to block obvious multi-statement/comment payloads.
+- Insert operations are now batched (`batchSize`) to reduce large-query failures.
+- Fixed test workflow: `npm test` now runs `test/basic.test.js` and the test file imports package code correctly.
 
 ## [2.0.0] - 2026-03-13
 

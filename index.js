@@ -21,6 +21,7 @@ const mysql = require('mysql2/promise');
  * @param {Object<string, string|Function>} [options.map={}] - Simple mapping for custom column names to generators.
  *   Example: { customer_name: 'name', customer_email: 'email' }
  * @param {number} [options.numRecords=10] - Number of records to generate
+ * @param {number} [options.batchSize=500] - Number of rows inserted per SQL statement
  * @param {boolean} [options.dropTableIfExists=false] - Drop table before creating
  * @param {boolean} [options.truncateBeforeInsert=false] - Truncate table before inserting
  * 
@@ -54,6 +55,7 @@ async function seedDatabase({
   generators = {},
   map = {},
   numRecords = 10,
+  batchSize = 500,
   dropTableIfExists = false,
   truncateBeforeInsert = false
 }) {
@@ -70,6 +72,37 @@ async function seedDatabase({
   if (numRecords < 1) {
     throw new Error('numRecords must be at least 1');
   }
+  if (!Number.isInteger(numRecords)) {
+    throw new Error('numRecords must be an integer');
+  }
+  if (!Number.isInteger(batchSize) || batchSize < 1) {
+    throw new Error('batchSize must be an integer >= 1');
+  }
+
+  const IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+  const assertSafeIdentifier = (identifier, label) => {
+    if (!IDENTIFIER_REGEX.test(identifier)) {
+      throw new Error(
+        `Invalid ${label} '${identifier}'. Use only letters, numbers, and underscores; it must not start with a number.`
+      );
+    }
+  };
+
+  const escapeIdentifier = (identifier) => `\`${identifier}\``;
+    const assertSafeSqlType = (sqlType, fieldName) => {
+      const value = String(sqlType || '').trim();
+      if (!value) {
+        throw new Error(`SQL type is required for field '${fieldName}'.`);
+      }
+
+      // Keep types flexible, but block obvious multi-statement/comment payloads.
+      if (/[;]|--|\/\*|\*\//.test(value)) {
+        throw new Error(`Invalid SQL type for field '${fieldName}'. Unsafe tokens are not allowed.`);
+      }
+    };
+
+  assertSafeIdentifier(database, 'database name');
+  assertSafeIdentifier(table, 'table name');
 
   let connection;
   
@@ -85,8 +118,10 @@ async function seedDatabase({
     console.log('✅ Connected');
 
     // 2. CREATE DATABASE
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
-    await connection.query(`USE \`${database}\``);
+    const escapedDatabase = escapeIdentifier(database);
+    const escapedTable = escapeIdentifier(table);
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${escapedDatabase}`);
+    await connection.query(`USE ${escapedDatabase}`);
     console.log(`✅ Database '${database}' ready`);
 
     // 3. AUTO-DETECT GENERATORS
@@ -105,10 +140,10 @@ async function seedDatabase({
       
       // Numbers
       age: () => faker.number.int({ min: 18, max: 65 }),
-      price: () => faker.number.float({ min: 10, max: 1000, precision: 0.01 }),
+      price: () => faker.number.float({ min: 10, max: 1000, multipleOf: 0.01 }),
       salary: () => faker.number.int({ min: 30000, max: 150000 }),
       quantity: () => faker.number.int({ min: 1, max: 100 }),
-      rating: () => faker.number.float({ min: 1, max: 5, precision: 0.1 }),
+      rating: () => faker.number.float({ min: 1, max: 5, multipleOf: 0.1 }),
       
       // Location
       city: () => faker.location.city(),
@@ -190,7 +225,7 @@ async function seedDatabase({
       }
 
       if (type.includes('DECIMAL') || type.includes('NUMERIC') || type.includes('FLOAT') || type.includes('DOUBLE')) {
-        return () => faker.number.float({ min: 10, max: 1000, precision: 0.01 });
+        return () => faker.number.float({ min: 10, max: 1000, multipleOf: 0.01 });
       }
 
       if (type.includes('INT') || type.includes('BIT')) {
@@ -308,18 +343,22 @@ async function seedDatabase({
 
     // 4. DROP TABLE IF REQUESTED
     if (dropTableIfExists) {
-      await connection.query(`DROP TABLE IF EXISTS ${table}`);
+      await connection.query(`DROP TABLE IF EXISTS ${escapedTable}`);
       console.log(`🗑️  Dropped existing table '${table}'`);
     }
 
     // 5. CREATE TABLE
     const fieldDefinitions = getFieldDefinitions(fields);
+    fieldDefinitions.forEach(({ name, type }) => {
+      assertSafeIdentifier(name, 'field name');
+      assertSafeSqlType(type, name);
+    });
     const columns = fieldDefinitions
-      .map(({ name, type }) => `${name} ${type}`)
+      .map(({ name, type }) => `${escapeIdentifier(name)} ${type}`)
       .join(', ');
     
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS ${table} (
+      CREATE TABLE IF NOT EXISTS ${escapedTable} (
         ${columns}
       )
     `);
@@ -327,7 +366,7 @@ async function seedDatabase({
 
     // 6. TRUNCATE IF REQUESTED
     if (truncateBeforeInsert) {
-      await connection.query(`TRUNCATE TABLE ${table}`);
+      await connection.query(`TRUNCATE TABLE ${escapedTable}`);
       console.log(`🗑️  Truncated table '${table}'`);
     }
 
@@ -338,35 +377,43 @@ async function seedDatabase({
       resolveGenerator(name, type, generatorOverride)
     );
 
-    // 8. GENERATE DATA
+    // 8. GENERATE + 9. INSERT (batched)
     console.log(`📝 Generating ${numRecords} fake records...`);
-    const records = [];
-    
-    for (let i = 0; i < numRecords; i++) {
-      const record = resolvedGenerators.map((generator) => {
-        return generator();
-      });
-      records.push(record);
+    const hasInsertableFields = fieldNames.length > 0;
+    const escapedFieldNames = fieldNames.map((name) => escapeIdentifier(name));
+    const placeholderRow = hasInsertableFields
+      ? `(${fieldNames.map(() => '?').join(', ')})`
+      : '()';
+
+    let insertedRecords = 0;
+    for (let offset = 0; offset < numRecords; offset += batchSize) {
+      const currentBatchSize = Math.min(batchSize, numRecords - offset);
+      const records = [];
+
+      for (let i = 0; i < currentBatchSize; i++) {
+        const record = resolvedGenerators.map((generator) => generator());
+        records.push(record);
+      }
+
+      const insertSQL = hasInsertableFields
+        ? `INSERT INTO ${escapedTable} (${escapedFieldNames.join(', ')}) VALUES ${Array.from({ length: currentBatchSize }, () => placeholderRow).join(', ')}`
+        : `INSERT INTO ${escapedTable} () VALUES ${Array.from({ length: currentBatchSize }, () => '()').join(', ')}`;
+      const flatValues = hasInsertableFields ? records.flat() : [];
+
+      const [result] = await connection.query(insertSQL, flatValues);
+      insertedRecords += result.affectedRows;
     }
 
-    // 9. INSERT
-    const hasInsertableFields = fieldNames.length > 0;
-    const insertSQL = hasInsertableFields
-      ? `INSERT INTO ${table} (${fieldNames.join(', ')}) VALUES ${records.map(() => `(${fieldNames.map(() => '?').join(', ')})`).join(', ')}`
-      : `INSERT INTO ${table} () VALUES ${records.map(() => '()').join(', ')}`;
-    const flatValues = hasInsertableFields ? records.flat() : [];
-
-    const [result] = await connection.query(insertSQL, flatValues);
-    console.log(`✅ Inserted ${result.affectedRows} records!`);
+    console.log(`✅ Inserted ${insertedRecords} records!`);
 
     // 10. SHOW SAMPLE
-    const [rows] = await connection.query(`SELECT * FROM ${table} LIMIT 3`);
+    const [rows] = await connection.query(`SELECT * FROM ${escapedTable} LIMIT 3`);
     console.log('\n📋 Sample data:');
     console.table(rows);
 
     return {
       success: true,
-      insertedRecords: result.affectedRows,
+      insertedRecords,
       database,
       table
     };

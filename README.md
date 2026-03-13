@@ -66,8 +66,21 @@ That's it! The function will:
 | `fieldGenerators` | object | `{}` | Legacy alias for mapping custom columns to generators |
 | `generators` | object | `{}` | Legacy alias for `fieldGenerators` |
 | `numRecords` | number | `10` | Number of records to generate |
+| `batchSize` | number | `500` | Rows inserted per SQL statement (helps avoid large query errors) |
 | `dropTableIfExists` | boolean | `false` | Drop table before creating |
 | `truncateBeforeInsert` | boolean | `false` | Truncate table before inserting |
+
+### Identifier Rules
+
+For safety and predictable SQL behavior, `database`, `table`, and field names must:
+
+- Start with a letter or underscore
+- Contain only letters, numbers, and underscores
+
+Examples:
+
+- Valid: `users`, `user_profiles`, `_audit_log`
+- Invalid: `user-profiles`, `order items`, `123users`
 
 ## Supported Field Types
 
@@ -437,6 +450,29 @@ Legacy aliases (`fieldGenerators` and `generators`) still work for backward comp
 
 ## Advanced Usage
 
+### Large Seeding Jobs (Batch Insert)
+
+Use `batchSize` to avoid overly large SQL statements for big datasets:
+
+```javascript
+await seedDatabase({
+  user: 'root',
+  password: 'password',
+  database: 'myapp',
+  table: 'events',
+  numRecords: 50000,
+  batchSize: 500,
+  fields: {
+    event_name: 'VARCHAR(255)',
+    created_at: 'DATETIME'
+  },
+  map: {
+    event_name: 'title',
+    created_at: 'created_at'
+  }
+});
+```
+
 ### Drop and Recreate Table
 
 ```javascript
@@ -501,7 +537,7 @@ async function seedUsers() {
 
 ## Running Tests
 
-This project includes integration tests in [basic.test.js](basic.test.js). Tests require a running MySQL instance and a password for your MySQL user.
+This project includes integration tests in [test/basic.test.js](test/basic.test.js). Tests require a running MySQL instance and a password for your MySQL user.
 
 Set `MYSQL_PASSWORD` and run tests:
 

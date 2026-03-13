@@ -46,7 +46,3 @@ test-output/
 # Local docs (not tracked on GitHub)
 PACKAGE_OVERVIEW.md
 PUBLISHING_GUIDE.md
-.npmignore
-
-examples
-test

@@ -4,7 +4,7 @@
   "description": "Simple MySQL database seeder with auto-generated fake data using Faker.js",
   "main": "index.js",
   "scripts": {
-    "test": "node basic.test.js"
+    "test": "node test/basic.test.js"
   },
   "keywords": [
     "mysql",
