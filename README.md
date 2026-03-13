@@ -5,8 +5,9 @@ Simple MySQL database seeder with auto-generated fake data. Perfect for testing,
 ## Features
 
 ✅ **Zero Configuration** - Works out of the box with sensible defaults  
-✅ **Auto-Generated Fake Data** - Just specify field names, data is generated automatically  
+✅ **Auto-Generated Fake Data** - Works with predefined field names and custom column names  
 ✅ **50+ Field Types** - Names, emails, addresses, images, dates, and more  
+✅ **Custom Column Names** - Use your own schema naming style and still generate realistic data  
 ✅ **Database & Table Creation** - Creates database and tables if they don't exist  
 ✅ **Simple API** - One function does everything  
 ✅ **Promise-based** - Modern async/await support
@@ -60,14 +61,82 @@ That's it! The function will:
 | `port` | number | `3306` | MySQL port |
 | `database` | string | **required** | Database name |
 | `table` | string | **required** | Table name |
-| `fields` | object | **required** | Field definitions |
+| `fields` | object | **required** | Field definitions. Supports `'SQL_TYPE'` or `{ type, generator }` per field |
+| `map` | object | `{}` | Recommended simple mapping for custom column names (`fieldName: 'name'` or `fieldName: () => value`) |
+| `fieldGenerators` | object | `{}` | Optional legacy per-field generator overrides (`fieldName: 'name'` or `fieldName: () => value`) |
+| `generators` | object | `{}` | Alias for `fieldGenerators` |
 | `numRecords` | number | `10` | Number of records to generate |
 | `dropTableIfExists` | boolean | `false` | Drop table before creating |
 | `truncateBeforeInsert` | boolean | `false` | Truncate table before inserting |
 
 ## Supported Field Types
 
-Just use these field names and fake data is generated automatically!
+Predefined field names generate smart matching data automatically.
+Custom field names are also supported and will use SQL-type inference (or explicit overrides).
+
+### Simplest Custom-Name Format (Recommended)
+
+Keep your `fields` simple, and use `map` only for the custom names you want to control:
+
+```javascript
+fields: {
+  customer_name: 'VARCHAR(255)',
+  customer_email: 'VARCHAR(255)',
+  joined_on: 'DATE',
+  loyalty_points: 'INT'
+},
+map: {
+  customer_name: 'name',
+  customer_email: 'email'
+}
+```
+
+Plain string values are always treated as SQL types, so your datatype and constraints remain fully under your control.
+
+### AUTO_INCREMENT and DB-Managed Columns
+
+Columns such as `id INT AUTO_INCREMENT PRIMARY KEY` are treated as database-managed.
+They are included in table creation, but values are not generated or inserted by the package.
+
+```javascript
+fields: {
+  id: 'INT AUTO_INCREMENT PRIMARY KEY',
+  name: 'VARCHAR(255)',
+  email: 'VARCHAR(255) UNIQUE'
+}
+```
+
+### Inline Field Format (Advanced)
+
+Keep everything in one place by defining type and generator inside each field:
+
+```javascript
+fields: {
+  customer_name: {
+    type: 'VARCHAR(255)',
+    generator: 'name' // built-in generator key
+  },
+  customer_code: {
+    type: 'VARCHAR(20)',
+    generator: () => `CUST-${Math.floor(Math.random() * 100000)}`
+  },
+  joined_on: {
+    type: 'DATE'
+  }
+}
+```
+
+### Generator Resolution Order
+
+When generating values, this package resolves each field in the following order:
+
+1. `fields[fieldName].generator` inline override (if provided)
+2. `map[fieldName]` (recommended simple override)
+3. `fieldGenerators[fieldName]` or `generators[fieldName]` (legacy aliases)
+4. Exact predefined field match (for example `email`, `name`)
+5. Alias match inside custom field names (for example `customer_email`)
+6. SQL-type inference fallback (for example `INT`, `DATE`, `BOOLEAN`, `DECIMAL`, `VARCHAR`)
+
 
 ### 👤 People
 - `name`, `full_name` → "John Doe"
@@ -219,7 +288,7 @@ async function seedUsers() {
       created_at: 'DATETIME',
       status: 'VARCHAR(20)'
     }
-});
+  });
 }
 ```
 
@@ -227,23 +296,132 @@ async function seedUsers() {
 
 ```javascript
 async function seedUsers() {
-await seedDatabase({
-  user: 'root',
-  password: 'password',
-  database: 'myapp',
-  table: 'users',
-  numRecords: 100,
-  fields: {
-    username: 'VARCHAR(100) UNIQUE',
-    email: 'VARCHAR(255) UNIQUE',
-    avatar: 'VARCHAR(500)',
-    bio: 'TEXT',
-    is_verified: 'BOOLEAN',
-    created_at: 'DATETIME'
-  }
-});
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'myapp',
+    table: 'users',
+    numRecords: 100,
+    fields: {
+      username: 'VARCHAR(100) UNIQUE',
+      email: 'VARCHAR(255) UNIQUE',
+      avatar: 'VARCHAR(500)',
+      bio: 'TEXT',
+      is_verified: 'BOOLEAN',
+      created_at: 'DATETIME'
+    }
+  });
 }
 ```
+
+### Custom Column Names
+
+```javascript
+async function seedCustomColumns() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'crm',
+    table: 'customers',
+    numRecords: 25,
+    fields: {
+      customer_full_name: 'VARCHAR(255)',
+      customer_email_address: 'VARCHAR(255)',
+      loyalty_points_total: 'INT',
+      onboarded_on: 'DATE'
+    },
+    map: {
+      customer_full_name: 'name',
+      customer_email_address: 'email'
+    }
+  });
+}
+```
+
+### Existing Schema Naming Convention
+
+```javascript
+async function seedLegacyUserTable() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'legacy_app',
+    table: 'user_master',
+    numRecords: 100,
+    fields: {
+      usr_id: 'INT AUTO_INCREMENT PRIMARY KEY',
+      usr_full_nm: 'VARCHAR(255) NOT NULL',
+      usr_mail_addr: 'VARCHAR(255) UNIQUE',
+      usr_city_nm: 'VARCHAR(120)',
+      usr_is_active: 'BOOLEAN'
+    },
+    map: {
+      usr_full_nm: 'name',
+      usr_mail_addr: 'email',
+      usr_city_nm: 'city',
+      usr_is_active: 'is_active'
+    }
+  });
+}
+```
+
+### Domain-Specific Custom Columns
+
+```javascript
+async function seedAdmissions() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'hospital',
+    table: 'admissions',
+    numRecords: 40,
+    fields: {
+      patient_uid: 'VARCHAR(36) PRIMARY KEY',
+      patient_full_name: 'VARCHAR(255)',
+      contact_email: 'VARCHAR(255)',
+      admission_date: 'DATE',
+      emergency_contact_phone: 'VARCHAR(20)'
+    },
+    map: {
+      patient_uid: 'uuid',
+      patient_full_name: 'name',
+      contact_email: 'email',
+      admission_date: 'date',
+      emergency_contact_phone: 'phone'
+    }
+  });
+}
+```
+
+### Custom Generators for Any Column
+
+```javascript
+async function seedCustomGenerators() {
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'crm',
+    table: 'customers',
+    numRecords: 25,
+    fields: {
+      customer_name: {
+        type: 'VARCHAR(255)',
+        generator: 'name'
+      },
+      preferred_color: {
+        type: 'VARCHAR(50)',
+        generator: 'color'
+      },
+      customer_code: {
+        type: 'VARCHAR(20)',
+        generator: () => `CUST-${Math.floor(Math.random() * 100000)}`
+      }
+    }
+  });
+}
+```
+
+Legacy style with `fieldGenerators` and `generators` still works for backward compatibility.
 
 ## Common SQL Data Types
 
@@ -263,18 +441,18 @@ await seedDatabase({
 
 ```javascript
 async function seedUsers() {
-await seedDatabase({
-  user: 'root',
-  password: 'password',
-  database: 'myapp',
-  table: 'users',
-  dropTableIfExists: true,  // ← Drops table first
-  numRecords: 100,
-  fields: {
-    name: 'VARCHAR(255)',
-    email: 'VARCHAR(255) UNIQUE'
-  }
-});
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'myapp',
+    table: 'users',
+    dropTableIfExists: true,  // ← Drops table first
+    numRecords: 100,
+    fields: {
+      name: 'VARCHAR(255)',
+      email: 'VARCHAR(255) UNIQUE'
+    }
+  });
 }
 ```
 
@@ -282,18 +460,18 @@ await seedDatabase({
 
 ```javascript
 async function seedUsers() {
-await seedDatabase({
-  user: 'root',
-  password: 'password',
-  database: 'myapp',
-  table: 'users',
-  truncateBeforeInsert: true,  // ← Clears existing data
-  numRecords: 100,
-  fields: {
-    name: 'VARCHAR(255)',
-    email: 'VARCHAR(255) UNIQUE'
-  }
-});
+  await seedDatabase({
+    user: 'root',
+    password: 'password',
+    database: 'myapp',
+    table: 'users',
+    truncateBeforeInsert: true,  // ← Clears existing data
+    numRecords: 100,
+    fields: {
+      name: 'VARCHAR(255)',
+      email: 'VARCHAR(255) UNIQUE'
+    }
+  });
 }
 ```
 
@@ -301,25 +479,46 @@ await seedDatabase({
 
 ```javascript
 async function seedUsers() {
-await seedDatabase({
-  host: '192.168.1.100',
-  port: 3307,
-  user: 'dbuser',
-  password: 'password',
-  database: 'myapp',
-  table: 'users',
-  numRecords: 50,
-  fields: {
-    name: 'VARCHAR(255)',
-    email: 'VARCHAR(255) UNIQUE'
-  }
-});
+  await seedDatabase({
+    host: '192.168.1.100',
+    port: 3307,
+    user: 'dbuser',
+    password: 'password',
+    database: 'myapp',
+    table: 'users',
+    numRecords: 50,
+    fields: {
+      name: 'VARCHAR(255)',
+      email: 'VARCHAR(255) UNIQUE'
+    }
+  });
 }
 ```
 ## Requirements
 
 - Node.js >= 14.0.0
 - MySQL server running and accessible
+
+## Running Tests
+
+This project includes integration tests in [basic.test.js](basic.test.js). Tests require a running MySQL instance and a password for your MySQL user.
+
+Set `MYSQL_PASSWORD` and run tests:
+
+```bash
+# Git Bash / macOS / Linux
+MYSQL_PASSWORD=yourpassword npm test
+```
+
+```powershell
+# Windows PowerShell
+$env:MYSQL_PASSWORD="yourpassword"; npm test
+```
+
+```cmd
+:: Windows CMD
+set MYSQL_PASSWORD=yourpassword && npm test
+```
 
 ## Troubleshooting
 
@@ -349,13 +548,53 @@ await seedDatabase({
 - Linux: `sudo systemctl start mysql`
 - Windows: Start MySQL from Services
 
-### Unknown Field Error
+### Cannot Auto-Generate Field Error
 
 ```
-❌ Error: Unknown field 'my_custom_field'
+❌ Error: Cannot auto-generate data for field 'my_custom_field' with SQL type '...'
 ```
 
-**Fix:** Use one of the supported field names from the list above, or open an issue on GitHub to request support for new field types.
+If this happens on `id` with `AUTO_INCREMENT`, upgrade to the latest package version.
+
+**Fix options:**
+- Use a predefined field name (for example `email`, `name`, `city`), or
+- Keep your custom field name and use a compatible SQL type (`VARCHAR`, `INT`, `DATE`, etc.), or
+- Add an explicit inline `generator` or `fieldGenerators` override for that field.
+
+Example:
+
+```javascript
+fields: {
+  my_custom_field: {
+    type: 'VARCHAR(50)',
+    generator: () => 'custom-value'
+  }
+}
+```
+
+### Field Doesn't Have a Default Value
+
+```
+❌ Error: Field 'id' doesn't have a default value
+```
+
+This usually means the table already exists with a required column (often `id`) that is not part of your current `fields` input.
+
+**Fix options:**
+- Recreate the table from current fields:
+
+```javascript
+await seedDatabase({
+  // ...other options
+  dropTableIfExists: true,
+  fields: {
+    name: 'VARCHAR(255)',
+    email: 'VARCHAR(255) UNIQUE'
+  }
+});
+```
+
+- Or include the required column in `fields` (for example `id: 'INT AUTO_INCREMENT PRIMARY KEY'`).
 
 ## Roadmap
 
