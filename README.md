@@ -360,10 +360,11 @@ await seedDatabase({
 ## Roadmap
 
 - ✅ v1.0 - MySQL support
-- 🔜 v1.1 - Custom field generators
-- 🔜 v2.0 - PostgreSQL support
-- 🔜 v2.1 - SQLite support
-- 🔜 v3.0 - MongoDB support
+- ✅ v2.0 - Explicit schema mode (no implicit `id` column)
+- 🔜 v2.1 - Custom field generators
+- 🔜 v3.0 - PostgreSQL support
+- 🔜 v3.1 - SQLite support
+- 🔜 v4.0 - MongoDB support
 
 ## Contributing
 

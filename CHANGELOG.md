@@ -1,39 +1,54 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [2.0.0] - 2026-03-13
+
+### Changed
+- Table creation no longer injects an implicit `id INT AUTO_INCREMENT PRIMARY KEY` column.
+
+### Breaking
+- You must define every column you want in `fields`, including primary keys.
+
+### Migration Notes
+- If your current code relies on implicit IDs, add an explicit ID field:
+
+```js
+fields: {
+  id: 'INT AUTO_INCREMENT PRIMARY KEY',
+  name: 'VARCHAR(255)',
+  email: 'VARCHAR(255) UNIQUE'
+}
+```
+
+## [1.0.1] - 2026-03-12
+
+### Fixed
+- Generated phone numbers are now bounded to avoid `ER_DATA_TOO_LONG` when used with common schemas such as `VARCHAR(20)`.
+
+### Changed
+- Documentation and examples were refined for setup clarity and safer defaults.
+- Repository hygiene updates (`.gitignore`, tracked file cleanup).
 
 ## [1.0.0] - 2026-03-11
 
 ### Added
-- Initial release
-- MySQL database seeding functionality
-- Auto-generated fake data using Faker.js
-- Support for 50+ field types including:
-  - People fields (name, email, phone, etc.)
-  - Location fields (city, country, address, etc.)
-  - Product fields (product_name, price, category, etc.)
-  - Image URLs (avatar, product_image, cover_image, etc.)
-  - Date fields (date, created_at, birth_date, etc.)
-  - Boolean fields (is_active, is_verified, etc.)
-- Database and table auto-creation
-- Configuration options:
-  - Custom host, port, user, password
-  - dropTableIfExists option
-  - truncateBeforeInsert option
-- Comprehensive error handling with helpful messages
-- Promise-based API with async/await support
-- JSDoc documentation
-- Examples and test files
+- Initial release of `mysql-seed-generator`.
+- MySQL seeding flow: connect, create database/table, generate fake data, and insert records.
+- Auto-detected fake data generation for common field names (people, contact, location, product, images, dates, booleans, and more).
+- Config options for `host`, `port`, `user`, `password`, `database`, `table`, `numRecords`, `dropTableIfExists`, and `truncateBeforeInsert`.
+- Promise-based API with async/await support.
+- Helpful runtime error hints for common MySQL failures.
 
-### Future Plans
-- v1.1: Custom field generators
-- v2.0: PostgreSQL support
-- v2.1: SQLite support
-- v3.0: MongoDB support
+### Notes
+- In `1.0.0`, table creation included an implicit `id INT AUTO_INCREMENT PRIMARY KEY` column.
 
-## [Unreleased]
-
-Nothing yet!
+[Unreleased]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/v1.0.1...v2.0.0
+[1.0.1]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/compare/4ca1991...v1.0.1
+[1.0.0]: https://github.com/the-ashish-gaikwad/mysql-seed-generator/commit/4ca1991
